@@ -13,6 +13,7 @@ get_emulator_list_command = '-list-avds'
 
 
 def get_emulator_list():
+    # Get the list of all emulators installed
     with Popen([emulator_command, get_emulator_list_command], shell=True, stdout=PIPE) as proc:
         for val in proc.stdout.readlines()[1:-1]:
             device_name = val.decode('UTF-8').strip()
@@ -24,7 +25,7 @@ def create_emulator_button():
         button = tk.Button(frame,
                            text=emulator_device,
                            fg="black")
-        # button.configure(command=lambda: on_click(emulator_device))
+        # Bind keys to use them with event
         root.bind('<Button>', on_click)
         button.pack(side=tk.LEFT)
 
@@ -32,13 +33,10 @@ def create_emulator_button():
 def on_click(event):
     # Get the text of the button that clicked
     emulator_name_text = event.widget.cget('text')
-    # Use multithreading to avoid "not responding" problem
+    # Use multithreading to avoid "not responding" problem in tkinter lib
     x = threading.Thread(target=start_emulator, args=(emulator_name_text,))
     x.start()
     print("Starting", emulator_name_text, "...")
-
-
-# start_emulator(emulator_name_text)
 
 
 def start_emulator(emulator_name):
@@ -49,5 +47,6 @@ def start_emulator(emulator_name):
 get_emulator_list()
 # Create button based on emulator list
 create_emulator_button()
+# Set title for the windowns
 root.title('Emulator Runner')
 root.mainloop()

@@ -47,6 +47,6 @@ def start_emulator(emulator_name):
 get_emulator_list()
 # Create button based on emulator list
 create_emulator_button()
-# Set title for the windowns
+# Set title for the windows
 root.title('Emulator Runner')
 root.mainloop()

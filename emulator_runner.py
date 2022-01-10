@@ -15,7 +15,7 @@ get_emulator_list_command = '-list-avds'
 def get_emulator_list():
     # Get the list of all emulators installed
     with Popen([emulator_command, get_emulator_list_command], shell=True, stdout=PIPE) as proc:
-        for val in proc.stdout.readlines()[1:-1]:
+        for val in proc.stdout.readlines()[:]:
             # Convert byte to string
             device_name = val.decode('UTF-8').strip()
             emulator_list.append(device_name)

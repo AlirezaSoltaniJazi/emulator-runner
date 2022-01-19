@@ -5,6 +5,9 @@ from subprocess import Popen, PIPE
 
 emulator_list = list()
 root = tk.Tk()
+# Set title for the windows
+root.title('Emulator Runner')
+# root.geometry("450x350")
 frame = tk.Frame(root)
 frame.pack()
 frame.focus()
@@ -22,15 +25,30 @@ def get_emulator_list():
 
 
 def create_emulator_button():
+    item_counter = 0
+    row = 0
+    column = 0
+    # get maximum device name that exist in the emulator list
+    maximum_device_name = max(len(x) for x in emulator_list)
     for emulator_device in emulator_list:
         # Create button with some attributes - fg=text color/text=button text/command(optional)
         button = tk.Button(frame,
                            text=emulator_device,
-                           fg="black")
+                           fg="black",
+                           height=1,
+                           width=maximum_device_name)
         # Bind keys to use them with event
         root.bind('<Button>', on_click)
-        # Put the buttons from left to right and next to each other
-        button.pack(side=tk.LEFT)
+        # Order bottoms like a calculator
+        if item_counter < 4:
+            button.grid(row=row, column=column)
+            column += 1
+            item_counter += 1
+        else:
+            button.grid(row=row, column=column)
+            item_counter = 0
+            column = 0
+            row += 1
 
 
 def on_click(event):
@@ -46,10 +64,9 @@ def start_emulator(emulator_name):
     os.system(rf'emulator @{emulator_name}')
 
 
-# Get emulator list with adb
-get_emulator_list()
-# Create button based on emulator list
-create_emulator_button()
-# Set title for the windows
-root.title('Emulator Runner')
-root.mainloop()
+if __name__ == '__main__':
+    # Get emulator list with adb
+    get_emulator_list()
+    # Create button based on emulator list
+    create_emulator_button()
+    root.mainloop()

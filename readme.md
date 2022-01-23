@@ -7,6 +7,6 @@
 ```
 1- clone project
 2- pip install -r requirements.txt
-*This file auto created by this command: "pip3 freeze > .\requirements.txt "
+*This file auto created by this command: "pip3 freeze > .\requirements.txt"
 3- python .\emulator_runner.py
 ```

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter.ttk import Notebook
 from subprocess import Popen, PIPE
 
-# Create Tab frame
+# Create an instance of tkinter frame (root)
 form_frame_tab = tk.Tk()
 form_frame_tab.title('Emulator/Device Manager')
 form_gui_tab = Notebook(form_frame_tab)
@@ -16,7 +16,7 @@ tab_about_us = tk.Frame(form_gui_tab)
 # Set title for the tabs
 form_gui_tab.add(tab_avd, text='AVD Manager')
 form_gui_tab.add(tab_adb, text='ADB Manager')
-form_gui_tab.add(tab_about_us, text='About US')
+form_gui_tab.add(tab_about_us, text='About Us')
 # Add label to tab
 label_about_us = tk.Label(tab_about_us, text='Made with love by Bazaar QA Team ❤')
 label_about_us.place(anchor='center', relx=0.5, rely=0.5)
@@ -47,6 +47,8 @@ def get_emulator_list():
 
 
 def get_device_list():
+    # Start adb server
+    os.system('adb start-server')
     # Get the list of all emulators installed
     with Popen([adb_command, get_device_list_command], shell=True, stdout=PIPE) as proc:
         for val in proc.stdout.readlines()[1:-1]:
@@ -137,6 +139,7 @@ def on_click_event(event):
             print('There isn\'t any device in the list')
     else:
         print(f'Tab changed to: {current_tab_index}')
+        form_creator()
 
 
 def on_click_avd(event):
@@ -185,7 +188,10 @@ def start_device(device_name):
             break
 
 
-if __name__ == '__main__':
+def form_creator():
+    emulator_list.clear()
+    device_list.clear()
+
     # Get emulator list
     get_emulator_list()
     # Create button based on emulator list
@@ -196,5 +202,12 @@ if __name__ == '__main__':
     # Create button based on device list
     create_button_adb()
 
+
+def main():
+    form_creator()
     form_frame_tab.bind('<<NotebookTabChanged>>', tab_change)
     form_frame_tab.mainloop()
+
+
+if __name__ == '__main__':
+    main()

@@ -3,11 +3,12 @@ import subprocess
 import threading
 import tkinter as tk
 from tkinter.ttk import Notebook
-from subprocess import Popen, PIPE
 
 # Create an instance of tkinter frame (root)
 form_frame_tab = tk.Tk()
 form_frame_tab.title('Emulator/Device Manager')
+# Set main window size
+form_frame_tab.geometry("1000x500")
 form_gui_tab = Notebook(form_frame_tab)
 # Create tabs in the frame
 tab_avd = tk.Frame(form_gui_tab)
@@ -23,49 +24,67 @@ label_about_us.place(anchor='center', relx=0.5, rely=0.5)
 form_gui_tab.pack(expand=1, fill="both")
 
 # Data
-avd_command = 'emulator'
-get_emulator_list_command = '-list-avds'
-adb_command = 'adb'
-get_device_list_command = 'devices'
+AVD_COMMAND = 'emulator'
+GET_EMULATORS_LIST_COMMAND = '-list-avds'
+ADB_COMMAND = 'adb'
+GET_DEVICES_LIST_COMMAND = 'devices'
 encoders_list = ['OMX.google.h264.encoder',
                  'c2.android.avc.encoder',
                  'OMX.qcom.video.encoder.avc']
 
 # Setup global variables
-emulator_list = list()
-device_list = list()
+emulators_list = []
+devices_list = []
 
 
 def get_emulator_list():
     # Get the list of all emulators installed
-    with Popen([avd_command, get_emulator_list_command], shell=True, stdout=PIPE) as proc:
-        for val in proc.stdout.readlines()[:]:
-            # Convert byte to string
-            device_name = val.decode('UTF-8').strip()
-            emulator_list.append(device_name)
-    print('Emulator list', emulator_list)
+    try:
+        # use subprocess to catch os error
+        command_output = subprocess.check_output([AVD_COMMAND, GET_EMULATORS_LIST_COMMAND])
+        # Convert byte to string
+        command_output_string = command_output.decode('UTF-8').strip()
+        emulators_list.extend(command_output_string.split('\n'))
+        print('Emulators list', emulators_list)
+    except Exception as error:
+        print("get_emulator_list => exception")
+        print(error)
+        os.system(f'{AVD_COMMAND} {GET_EMULATORS_LIST_COMMAND}')
 
 
 def get_device_list():
     # Start adb server
     os.system('adb start-server')
-    # Get the list of all emulators installed
-    with Popen([adb_command, get_device_list_command], shell=True, stdout=PIPE) as proc:
-        for val in proc.stdout.readlines()[1:-1]:
-            # Convert byte to string
-            device_name = val.decode('UTF-8').replace('device', '').strip()
-            device_list.append(device_name)
-    print('Device list', device_list)
+    # Start adb server
+    os.system('adb start-server')
+    # Get the list of all connected devices
+    try:
+        # use subprocess to catch os error
+        command_output = subprocess.check_output([ADB_COMMAND, GET_DEVICES_LIST_COMMAND])
+        # Convert byte to string
+        command_output_string = command_output.decode('UTF-8').strip()
+        temp_list = command_output_string.split('\n')
+        del temp_list[0]
+        for i in temp_list:
+            temp_device_name = i.split('	')[0]
+            if 'emulator' not in temp_device_name:
+                devices_list.append(temp_device_name)
+        print('Devices list', devices_list)
+    except Exception as error:
+        print("get_device_list => exception")
+        print(error)
+        os.system(f'{ADB_COMMAND} {GET_DEVICES_LIST_COMMAND}')
 
 
 def create_button_avd():
-    if len(emulator_list) > 0:
+    number_of_bottom_columns = 3
+    if len(emulators_list) > 0:
         item_counter = 0
         row = 0
         column = 0
         # get maximum device name that exist in the emulator list
-        maximum_emulator_name = max(len(x) for x in emulator_list)
-        for emulator in emulator_list:
+        maximum_emulator_name = max(len(x) for x in emulators_list)
+        for emulator in emulators_list:
             # Create button with some attributes - fg=text color/text=button text/command(optional)
             button = tk.Button(tab_avd,
                                text=emulator,
@@ -73,7 +92,7 @@ def create_button_avd():
                                height=1,
                                width=maximum_emulator_name)
             # Order bottoms like a calculator
-            if item_counter < 4:
+            if item_counter < number_of_bottom_columns:
                 button.grid(row=row, column=column)
                 column += 1
                 item_counter += 1
@@ -91,13 +110,14 @@ def create_button_avd():
 
 
 def create_button_adb():
-    if len(device_list) > 0:
+    number_of_bottom_columns = 3
+    if len(devices_list) > 0:
         item_counter = 0
         row = 0
         column = 0
         # get maximum device name that exist in the emulator list
-        maximum_device_name = max(len(x) for x in device_list)
-        for device in device_list:
+        maximum_device_name = max(len(x) for x in devices_list)
+        for device in devices_list:
             # Create button with some attributes - fg=text color/text=button text/command(optional)
             button = tk.Button(tab_adb,
                                text=device,
@@ -105,7 +125,7 @@ def create_button_adb():
                                height=1,
                                width=maximum_device_name)
             # Order bottoms like a calculator
-            if item_counter < 4:
+            if item_counter < number_of_bottom_columns:
                 button.grid(row=row, column=column)
                 column += 1
                 item_counter += 1
@@ -127,13 +147,13 @@ def on_click_event(event):
     current_tab_index = form_gui_tab.index(form_gui_tab.select())
     if current_tab_index == 0 and element_type == 'Button':
         print('AVD tab')
-        if len(emulator_list) != 0:
+        if len(emulators_list) != 0:
             on_click_avd(event)
         else:
             print('There isn\'t any emulator in the list')
     elif current_tab_index == 1 and element_type == 'Button':
         print('ADB tab')
-        if len(device_list) != 0:
+        if len(devices_list) != 0:
             on_click_adb(event)
         else:
             print('There isn\'t any device in the list')
@@ -189,8 +209,8 @@ def start_device(device_name):
 
 
 def form_creator():
-    emulator_list.clear()
-    device_list.clear()
+    emulators_list.clear()
+    devices_list.clear()
 
     # Get emulator list
     get_emulator_list()

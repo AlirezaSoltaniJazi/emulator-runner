@@ -4,6 +4,8 @@ import threading
 import tkinter as tk
 from tkinter.ttk import Notebook
 
+from commands import AVD_COMMAND, GET_EMULATORS_LIST_COMMAND, ADB_COMMAND, GET_DEVICES_LIST_COMMAND, ENCODERS_LIST
+
 # Create an instance of tkinter frame (root)
 form_frame_tab = tk.Tk()
 form_frame_tab.title('Emulator/Device Manager')
@@ -22,15 +24,6 @@ form_gui_tab.add(tab_about_us, text='About Us')
 label_about_us = tk.Label(tab_about_us, text='Made with love by Bazaar QA Team ❤')
 label_about_us.place(anchor='center', relx=0.5, rely=0.5)
 form_gui_tab.pack(expand=1, fill="both")
-
-# Data
-AVD_COMMAND = 'emulator'
-GET_EMULATORS_LIST_COMMAND = '-list-avds'
-ADB_COMMAND = 'adb'
-GET_DEVICES_LIST_COMMAND = 'devices'
-encoders_list = ['OMX.google.h264.encoder',
-                 'c2.android.avc.encoder',
-                 'OMX.qcom.video.encoder.avc']
 
 # Setup global variables
 emulators_list = []
@@ -167,8 +160,8 @@ def on_click_avd(event):
     # Get the text of the button that clicked
     emulator_name_text = event.widget.cget('text')
     # Use multithreading to avoid "not responding" problem in tkinter lib
-    x = threading.Thread(target=start_emulator, args=(emulator_name_text,))
-    x.start()
+    avd_launcher = threading.Thread(target=start_emulator, args=(emulator_name_text,))
+    avd_launcher.start()
     print("Starting", emulator_name_text, "...")
 
 
@@ -183,6 +176,7 @@ def on_click_adb(event):
 
 
 def tab_change(event=None):
+    print(event)
     form_frame_tab.bind('<Button>', on_click_event)
 
 
@@ -200,7 +194,7 @@ def start_device(device_name):
     check_fine = os.system(rf'scrcpy -s {device_name}')
     print("SCRCPY doesn't work with default encoder")
     # Try different encoders
-    for encoder in encoders_list:
+    for encoder in ENCODERS_LIST:
         if check_fine == 1:
             print(f'Try to using this encoder: {encoder}')
             check_fine = os.system(rf'scrcpy -s {device_name} --encoder {encoder}')
